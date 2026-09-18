@@ -1,0 +1,21 @@
+## Build and compile outputs
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio & Rider
+.vs/
+.idea/
+*.user
+*.userosscache
+*.suo
+
+## SQLite Database
+*.db
+*.db-shm
+*.db-wal
+
+## OS generated
+.DS_Store
+Thumbs.db

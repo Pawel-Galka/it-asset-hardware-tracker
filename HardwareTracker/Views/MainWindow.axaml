@@ -1,0 +1,253 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:HardwareTracker.ViewModels"
+        xmlns:models="using:HardwareTracker.Models"
+        xmlns:converters="using:HardwareTracker.Converters"
+        x:Class="HardwareTracker.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="IT Asset &amp; Hardware Tracker"
+        Width="1300" Height="850"
+        MinWidth="1100" MinHeight="650"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Styles>
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#D32F2F"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#B71C1C"/>
+            <Setter Property="TextBlock.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#8E0000"/>
+            <Setter Property="TextBlock.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.danger:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Opacity" Value="0.4"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="20">
+        <!-- Application Header and Primary Action Toolbar -->
+        <Border Grid.Row="0" Margin="0,0,0,16" Padding="0,0,0,12" BorderBrush="#33808080" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <TextBlock Text="IT Asset &amp; Hardware Tracker" FontSize="22" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <Button Content="Refresh" Command="{Binding LoadDataCommand}" Margin="16,0,0,0"/>
+                    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Width="100" Height="4" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                    <Button Content="Employees" Command="{Binding ManageEmployeesCommand}"/>
+                    <Button Content="Export to CSV" Command="{Binding ExportToCsvCommand}"/>
+                    <Button Content="+ Add Asset" Command="{Binding AddAssetCommand}" Classes="accent"/>
+
+                    <!-- Command.CanExecute automatically manages IsEnabled based on ViewModel state -->
+                    <Button Content="Edit Selected" 
+                            Command="{Binding EditAssetCommand}"/>
+
+                    <Button Content="Delete" 
+                            Command="{Binding DeleteAssetCommand}" 
+                            Classes="danger"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- KPI Metric Overview Tiles -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*" Margin="0,0,0,16">
+            <Border Grid.Column="0" Margin="0,0,6,0" Padding="16,12" Background="#1A808080" CornerRadius="8">
+                <Grid RowDefinitions="Auto,Auto,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="Total Assets" FontSize="12" Opacity="0.7" FontWeight="SemiBold"/>
+                        <Border Grid.Column="1" Background="#26808080" CornerRadius="4" Padding="6,2">
+                            <TextBlock Text="100%" FontSize="11" Opacity="0.8" FontWeight="SemiBold"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="{Binding TotalAssetsCount}" FontSize="24" FontWeight="Bold" Margin="0,6,0,0"/>
+                    <TextBlock Grid.Row="2" Text="Total registered hardware" FontSize="11" Opacity="0.5" Margin="0,2,0,0"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Margin="6,0,6,0" Padding="16,12" Background="#1A808080" CornerRadius="8">
+                <Grid RowDefinitions="Auto,Auto,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="Available" FontSize="12" Opacity="0.7" FontWeight="SemiBold"/>
+                        <Border Grid.Column="1" Background="#264CAF50" CornerRadius="4" Padding="6,2">
+                            <TextBlock Text="{Binding AvailablePercentage}" FontSize="11" Foreground="#4CAF50" FontWeight="SemiBold"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="{Binding AvailableCount}" FontSize="24" FontWeight="Bold" Margin="0,6,0,0"/>
+                    <TextBlock Grid.Row="2" Text="In stock / ready for deployment" FontSize="11" Opacity="0.5" Margin="0,2,0,0"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Margin="6,0,6,0" Padding="16,12" Background="#1A808080" CornerRadius="8">
+                <Grid RowDefinitions="Auto,Auto,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="Assigned" FontSize="12" Opacity="0.7" FontWeight="SemiBold"/>
+                        <Border Grid.Column="1" Background="#262196F3" CornerRadius="4" Padding="6,2">
+                            <TextBlock Text="{Binding AssignedPercentage}" FontSize="11" Foreground="#2196F3" FontWeight="SemiBold"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="{Binding AssignedCount}" FontSize="24" FontWeight="Bold" Margin="0,6,0,0"/>
+                    <TextBlock Grid.Row="2" Text="Currently with employees" FontSize="11" Opacity="0.5" Margin="0,2,0,0"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="3" Margin="6,0,6,0" Padding="16,12" Background="#1A808080" CornerRadius="8">
+                <Grid RowDefinitions="Auto,Auto,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="In Service / Repair" FontSize="12" Opacity="0.7" FontWeight="SemiBold"/>
+                        <Border Grid.Column="1" Background="#26FF9800" CornerRadius="4" Padding="6,2">
+                            <TextBlock Text="{Binding InServicePercentage}" FontSize="11" Foreground="#FF9800" FontWeight="SemiBold"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="{Binding InServiceCount}" FontSize="24" FontWeight="Bold" Margin="0,6,0,0"/>
+                    <TextBlock Grid.Row="2" Text="Maintenance / Out of order" FontSize="11" Opacity="0.5" Margin="0,2,0,0"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="4" Margin="6,0,0,0" Padding="16,12" Background="#1A808080" CornerRadius="8">
+                <Grid RowDefinitions="Auto,Auto,Auto">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="Disposed" FontSize="12" Opacity="0.7" FontWeight="SemiBold"/>
+                        <Border Grid.Column="1" Background="#269E9E9E" CornerRadius="4" Padding="6,2">
+                            <TextBlock Text="{Binding DisposedPercentage}" FontSize="11" Foreground="#9E9E9E" FontWeight="SemiBold"/>
+                        </Border>
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="{Binding DisposedCount}" FontSize="24" FontWeight="Bold" Margin="0,6,0,0"/>
+                    <TextBlock Grid.Row="2" Text="Decommissioned / Written off" FontSize="11" Opacity="0.5" Margin="0,2,0,0"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Search & Filter Controls -->
+        <Border Grid.Row="2" Margin="0,0,0,16" Padding="12" Background="#14808080" CornerRadius="8">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto" VerticalAlignment="Center">
+                <TextBox Grid.Column="0" 
+                         Text="{Binding SearchText, Mode=TwoWay}" 
+                         Watermark="Search by Serial, Model or Employee..." 
+                         Margin="0,0,16,0"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="0,0,16,0" VerticalAlignment="Center">
+                    <TextBlock Text="Status:" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding StatusFilters}" 
+                              SelectedItem="{Binding SelectedStatusFilter, Mode=TwoWay}" 
+                              MinWidth="120"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="0,0,16,0" VerticalAlignment="Center">
+                    <TextBlock Text="Category:" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding CategoryFilters}" 
+                              SelectedItem="{Binding SelectedCategoryFilter, Mode=TwoWay}" 
+                              MinWidth="130"/>
+                </StackPanel>
+
+                <Button Grid.Column="3" 
+                        Content="Reset" 
+                        Command="{Binding ResetFiltersCommand}"/>
+            </Grid>
+        </Border>
+
+        <!-- Master-Detail Content Area -->
+        <Grid Grid.Row="3" ColumnDefinitions="3*,2*">
+            <Border Grid.Column="0" Margin="0,0,12,0" Background="#1A808080" CornerRadius="8" Padding="12">
+                <DataGrid ItemsSource="{Binding FilteredAssets}"
+                          SelectedItem="{Binding SelectedAsset, Mode=TwoWay}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          GridLinesVisibility="Horizontal"
+                          CanUserResizeColumns="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Serial Number" Binding="{Binding SerialNumber}" Width="1.5*" />
+                        <DataGridTextColumn Header="Model" Binding="{Binding Model}" Width="2*" />
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="1.2*" />
+                        <DataGridTemplateColumn Header="Status" Width="1.2*" SortMemberPath="Status">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate DataType="models:Asset">
+                                    <!-- Static converter instance avoids ResourceDictionary resolution overhead per virtualized cell -->
+                                    <Border Background="{Binding Status, Converter={x:Static converters:StatusToBrushConverter.Instance}}"
+                                            CornerRadius="4"
+                                            Padding="8,3"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Margin="4,0">
+                                        <TextBlock Text="{Binding Status}" 
+                                                   Foreground="White" 
+                                                   FontWeight="SemiBold" 
+                                                   FontSize="11" />
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Assigned To" Binding="{Binding AssignedEmployee.FullName}" Width="1.8*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <Border Grid.Column="1" Margin="12,0,0,0" Background="#1A808080" CornerRadius="8" Padding="20">
+                <ScrollViewer>
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="Asset Details" FontSize="18" FontWeight="Bold" />
+
+                        <StackPanel Spacing="12" IsVisible="{Binding SelectedAsset, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,8,0,0">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Serial Number:" FontWeight="SemiBold" Margin="0,4,16,4"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedAsset.SerialNumber}" Margin="0,4"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Model:" FontWeight="SemiBold" Margin="0,4,16,4"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedAsset.Model}" Margin="0,4"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Category:" FontWeight="SemiBold" Margin="0,4,16,4"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedAsset.Category}" Margin="0,4"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Status:" FontWeight="SemiBold" Margin="0,4,16,4"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedAsset.Status}" Margin="0,4"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Assigned Employee:" FontWeight="SemiBold" Margin="0,4,16,4"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedAsset.AssignedEmployee.FullName, FallbackValue='None'}" Margin="0,4"/>
+                            </Grid>
+
+                            <Separator Margin="0,12" Height="1" Background="#33808080"/>
+
+                            <TextBlock Text="Assignment &amp; Lifecycle History" FontSize="15" FontWeight="Bold"/>
+
+                            <ItemsControl ItemsSource="{Binding SelectedAsset.AssignmentHistories}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="models:AssignmentHistory">
+                                        <Border Margin="0,0,0,8" Padding="10" Background="#14808080" CornerRadius="6">
+                                            <StackPanel Spacing="4">
+                                                <Border Background="{Binding Status, Converter={x:Static converters:StatusToBrushConverter.Instance}}"
+                                                        CornerRadius="3"
+                                                        Padding="6,2"
+                                                        HorizontalAlignment="Left"
+                                                        Margin="0,0,0,2">
+                                                    <TextBlock Text="{Binding Status}" 
+                                                               Foreground="White" 
+                                                               FontSize="10" 
+                                                               FontWeight="SemiBold"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding DisplayTitle}" FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding DisplayDepartment}" 
+                                                           FontSize="12" 
+                                                           Opacity="0.8" 
+                                                           IsVisible="{Binding DisplayDepartment, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Text="{Binding DisplaySubtitle}" FontSize="12" Opacity="0.8"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <TextBlock Text="Select an asset from the list to view details." 
+                                   IsVisible="{Binding SelectedAsset, Converter={x:Static ObjectConverters.IsNull}}"
+                                   FontStyle="Italic"
+                                   Opacity="0.6"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,180 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:HardwareTracker.ViewModels"
+        xmlns:models="using:HardwareTracker.Models"
+        xmlns:converters="using:HardwareTracker.Converters"
+        x:Class="HardwareTracker.Views.EmployeesWindow"
+        x:DataType="vm:EmployeesViewModel"
+        Title="Manage Employees"
+        Width="1150" Height="650"
+        MinWidth="850" MinHeight="500"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="Button.warning">
+            <Setter Property="Background" Value="#EF6C00"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.warning:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E65100"/>
+            <Setter Property="TextBlock.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.warning:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#BF360C"/>
+            <Setter Property="TextBlock.Foreground" Value="White"/>
+        </Style>
+
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#D32F2F"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#B71C1C"/>
+            <Setter Property="TextBlock.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#7F0000"/>
+            <Setter Property="TextBlock.Foreground" Value="White"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid ColumnDefinitions="3.2*,1.8*" Margin="20">
+        <!-- Personnel directory and assignment overview -->
+        <Border Grid.Column="0" Margin="0,0,12,0" Background="#1A808080" CornerRadius="8" Padding="14">
+            <Grid RowDefinitions="Auto,*">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,14">
+                    <TextBlock Grid.Column="0" Text="Company Personnel" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Column="1" 
+                              Content="Show inactive employees" 
+                              IsChecked="{Binding ShowInactive, Mode=TwoWay}"
+                              VerticalAlignment="Center"/>
+                </Grid>
+
+                <DataGrid Grid.Row="1" 
+                          ItemsSource="{Binding DisplayedEmployees}" 
+                          AutoGenerateColumns="False" 
+                          IsReadOnly="True"
+                          GridLinesVisibility="Horizontal"
+                          CanUserResizeColumns="True">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Status" Width="95">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate DataType="models:Employee">
+                                    <!-- Direct singleton static binding bypasses resource dictionary lookup overhead -->
+                                    <Border Background="{Binding IsActive, Converter={x:Static converters:ActiveStatusToBrushConverter.Instance}}"
+                                            CornerRadius="4"
+                                            Padding="6,2"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Margin="4,0">
+                                        <TextBlock Text="{Binding StatusText}" 
+                                                   Foreground="White" 
+                                                   FontSize="11" 
+                                                   FontWeight="SemiBold"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="Name" Binding="{Binding FullName}" Width="1.8*" />
+                        <DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="1.2*" />
+                        <DataGridTextColumn Header="Hired" Binding="{Binding HireDateDisplay}" Width="1.1*" />
+                        <DataGridTextColumn Header="Terminated" Binding="{Binding TerminationDateDisplay}" Width="1.1*" />
+
+                        <DataGridTemplateColumn Header="Actions" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate DataType="models:Employee">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="4,2">
+                                        <Button Content="Edit" 
+                                                Padding="8,3"
+                                                FontSize="11"
+                                                Command="{Binding ((vm:EmployeesViewModel)DataContext).StartEditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}" />
+
+                                        <Button Content="Offboard" 
+                                                Classes="warning"
+                                                Padding="8,3"
+                                                FontSize="11"
+                                                IsVisible="{Binding IsActive}"
+                                                Command="{Binding ((vm:EmployeesViewModel)DataContext).OffboardEmployeeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}" />
+
+                                        <Button Content="Rehire" 
+                                                Classes="accent"
+                                                Padding="8,3"
+                                                FontSize="11"
+                                                IsVisible="{Binding !IsActive}"
+                                                Command="{Binding ((vm:EmployeesViewModel)DataContext).RehireEmployeeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}" />
+
+                                        <Button Content="Delete" 
+                                                Classes="danger"
+                                                Padding="8,3"
+                                                FontSize="11"
+                                                Command="{Binding ((vm:EmployeesViewModel)DataContext).DeleteEmployeeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- Form container disabled during async operations to prevent conflicting edits -->
+        <Border Grid.Column="1" 
+                Margin="12,0,0,0" 
+                Background="#1A808080" 
+                CornerRadius="8" 
+                Padding="20"
+                IsEnabled="{Binding !IsBusy}">
+            <ScrollViewer>
+                <StackPanel Spacing="14">
+                    <TextBlock Text="{Binding FormTitle}" FontSize="18" FontWeight="Bold"/>
+
+                    <Border Background="#26D32F2F" 
+                            CornerRadius="4" 
+                            Padding="10,6" 
+                            IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="#EF5350" FontSize="12"/>
+                    </Border>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="First Name:"/>
+                        <TextBox Text="{Binding FirstName, Mode=TwoWay}"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Last Name:"/>
+                        <TextBox Text="{Binding LastName, Mode=TwoWay}"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Email:"/>
+                        <TextBox Text="{Binding Email, Mode=TwoWay}"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Department:"/>
+                        <TextBox Text="{Binding Department, Mode=TwoWay}"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,12,0,0">
+                        <Button Content="Cancel" 
+                                Command="{Binding CancelEditCommand}" 
+                                IsVisible="{Binding IsEditing}"
+                                Width="80" 
+                                HorizontalContentAlignment="Center"/>
+
+                        <Button Content="{Binding SaveButtonText}" 
+                                Command="{Binding SaveCommand}" 
+                                Classes="accent" 
+                                Width="120" 
+                                HorizontalContentAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>

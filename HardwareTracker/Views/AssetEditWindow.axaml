@@ -1,0 +1,92 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:HardwareTracker.ViewModels"
+        xmlns:models="using:HardwareTracker.Models"
+        x:Class="HardwareTracker.Views.AssetEditWindow"
+        x:DataType="vm:AssetEditViewModel"
+        Title="Manage Asset"
+        Width="500"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="ComboBox /template/ TextBlock#PlaceholderTextBlock">
+            <Setter Property="Opacity" Value="0.5"/>
+        </Style>
+    </Window.Styles>
+
+    <!-- Form interaction is blocked during initial data load or active save operations -->
+    <Border Padding="24" IsEnabled="{Binding CanEdit}">
+        <StackPanel Spacing="16">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Text="Asset Information" FontSize="20" FontWeight="Bold"/>
+                <ProgressBar Grid.Column="1" 
+                             IsIndeterminate="True" 
+                             IsVisible="{Binding IsLoading}" 
+                             Width="80" 
+                             Height="4" 
+                             VerticalAlignment="Center"/>
+            </Grid>
+
+            <Border Background="#26D32F2F" 
+                    CornerRadius="4" 
+                    Padding="12,8" 
+                    IsVisible="{Binding GeneralError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding GeneralError}" 
+                           Foreground="#EF5350" 
+                           FontWeight="SemiBold"/>
+            </Border>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Serial Number:"/>
+                <TextBox Text="{Binding SerialNumber, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Model:"/>
+                <TextBox Text="{Binding Model, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Category:"/>
+                <ComboBox ItemsSource="{x:Static vm:AssetEditViewModel.Categories}" 
+                          SelectedItem="{Binding Category, Mode=TwoWay}"
+                          PlaceholderText="Select category..."
+                          HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Status:"/>
+                <ComboBox ItemsSource="{x:Static vm:AssetEditViewModel.StatusList}" 
+                          SelectedItem="{Binding Status, Mode=TwoWay}"
+                          HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Assigned Employee:"/>
+                <Grid ColumnDefinitions="*,Auto">
+                    <ComboBox Grid.Column="0" 
+                              ItemsSource="{Binding Employees}" 
+                              SelectedItem="{Binding SelectedEmployee, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate DataType="models:Employee">
+                                <TextBlock Text="{Binding FullName}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Grid.Column="1" 
+                            Content="Clear" 
+                            Command="{Binding ClearEmployeeCommand}" 
+                            Margin="8,0,0,0"/>
+                </Grid>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12" Margin="0,16,0,0">
+                <Button Content="Cancel" Command="{Binding CancelCommand}" Width="90" HorizontalContentAlignment="Center"/>
+                <Button Content="Save" Command="{Binding SaveCommand}" Width="90" HorizontalContentAlignment="Center" Classes="accent"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

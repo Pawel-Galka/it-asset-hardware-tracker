@@ -1,0 +1,69 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:HardwareTracker.ViewModels"
+        x:Class="HardwareTracker.Views.ConfirmationWindow"
+        x:DataType="vm:ConfirmationViewModel"
+        Title="{Binding Title}"
+        Width="440"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#D32F2F"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#B71C1C"/>
+            <Setter Property="TextBlock.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#7F0000"/>
+            <Setter Property="TextBlock.Foreground" Value="White"/>
+        </Style>
+    </Window.Styles>
+
+    <Border Padding="20">
+        <StackPanel Spacing="16">
+            <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold"/>
+            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" Opacity="0.8"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12" Margin="0,12,0,0">
+                <!-- IsCancel routes the Escape key press directly to dismiss the dialog with false -->
+                <Button Content="Cancel" 
+                        Click="OnCancelClick" 
+                        Width="80" 
+                        HorizontalContentAlignment="Center"
+                        IsCancel="True"
+                        IsVisible="{Binding IsConfirmation}"/>
+
+                <!-- IsDefault routes the Enter key press directly to commit the primary action -->
+                <Button Content="{Binding ConfirmText}" 
+                        Click="OnConfirmClick" 
+                        Width="90" 
+                        HorizontalContentAlignment="Center" 
+                        Classes="danger"
+                        IsDefault="{Binding ShowDangerConfirm}"
+                        IsVisible="{Binding ShowDangerConfirm}"/>
+
+                <Button Content="{Binding ConfirmText}" 
+                        Click="OnConfirmClick" 
+                        Width="90" 
+                        HorizontalContentAlignment="Center" 
+                        Classes="accent"
+                        IsDefault="{Binding ShowAccentConfirm}"
+                        IsVisible="{Binding ShowAccentConfirm}"/>
+
+                <Button Content="OK" 
+                        Click="OnConfirmClick" 
+                        Width="80" 
+                        HorizontalContentAlignment="Center" 
+                        Classes="accent"
+                        IsDefault="{Binding IsAlert}"
+                        IsCancel="{Binding IsAlert}"
+                        IsVisible="{Binding IsAlert}"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>
